@@ -2,72 +2,39 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <title>KOJUSO2EN - 주소 영문 변환기</title>
+  <title>KOJUSO2EN</title>
   <style>
-    body { font-family: Arial, sans-serif; text-align: center; padding: 40px; background: #f2f2f2; }
-    input, button {
-      padding: 10px;
-      font-size: 16px;
-      width: 80%;
-      max-width: 400px;
-      margin: 10px auto;
-      display: block;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-    }
-    button {
-      background-color: #007bff;
-      color: white;
-      border: none;
-      cursor: pointer;
-    }
-    button:hover {
-      background-color: #0056b3;
-    }
-    #result {
-      margin-top: 30px;
-      font-size: 18px;
-      color: #222;
-    }
+    body { font-family: sans-serif; padding: 2em; background: #f5f5f5; }
+    input[type=text] { padding: 0.5em; width: 300px; }
+    button { padding: 0.5em 1em; background: #007bff; color: white; border: none; }
+    .result { margin-top: 1em; padding: 1em; background: white; border-radius: 8px; }
   </style>
 </head>
 <body>
   <h1>KOJUSO2EN</h1>
   <p>한글 주소를 입력하면 영문 주소로 변환해드립니다.</p>
-
-  <input type="text" id="koreanAddress" placeholder="예: 대전광역시 서구 도안동로 234" />
+  <input type="text" id="addressInput" placeholder="예: 서울특별시 중구 세종대로 110" />
   <button onclick="convertAddress()">변환하기</button>
 
-  <div id="result"></div>
+  <div class="result" id="result"></div>
 
   <script>
     async function convertAddress() {
-      const keyword = document.getElementById('koreanAddress').value.trim();
-      const resultDiv = document.getElementById('result');
-
-      if (!keyword) {
-        resultDiv.innerHTML = "⚠️ 주소를 입력해주세요.";
-        return;
-      }
-
-      resultDiv.innerHTML = "🔄 변환 중입니다...";
+      const keyword = document.getElementById("addressInput").value;
+      const resultDiv = document.getElementById("result");
+      resultDiv.innerHTML = "🔄 변환 중...";
 
       try {
-        const response = await fetch(`/.netlify/functions/convert?keyword=${encodeURIComponent(keyword)}`);
-        const data = await response.json();
-        console.log("📦 API 응답:", JSON.stringify(data));
+        const res = await fetch(`/.netlify/functions/convert?keyword=${encodeURIComponent(keyword)}`);
+        const data = await res.json();
 
-        if (data.error) {
-          resultDiv.innerHTML = `❌ ${data.error}`;
-        } else {
-          resultDiv.innerHTML = `
-            ✅ <strong>영문 주소:</strong><br>${data.roadAddrEng}<br><br>
-            📮 <strong>우편번호:</strong> ${data.zipNo}
-          `;
-        }
-      } catch (error) {
-        resultDiv.innerHTML = "❌ 오류가 발생했습니다. 콘솔을 확인하세요.";
-        console.error(error);
+        resultDiv.innerHTML = `
+          ✅ <strong>영문 주소:</strong><br>${data.roadAddrEng}<br><br>
+          📮 <strong>우편번호:</strong> ${data.zipNo}<br><br>
+          🔎 <small>원시 응답: ${JSON.stringify(data.raw)}</small>
+        `;
+      } catch (err) {
+        resultDiv.innerHTML = "❌ 오류 발생: " + err;
       }
     }
   </script>

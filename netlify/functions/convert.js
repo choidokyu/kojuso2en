@@ -9,7 +9,6 @@ exports.handler = async function (event, context) {
   try {
     const response = await fetch(apiUrl);
     const data = await response.json();
-
     console.log("📦 전체 API 응답:", JSON.stringify(data));
 
     const juso = data.results?.juso?.[0];
@@ -33,7 +32,6 @@ exports.handler = async function (event, context) {
         raw: juso
       }),
     };
-
   } catch (error) {
     console.error("❌ API 호출 실패:", error);
     return {
