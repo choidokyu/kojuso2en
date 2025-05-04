@@ -2,7 +2,8 @@ const fetch = require("node-fetch");
 
 exports.handler = async function (event) {
   const { keyword } = event.queryStringParameters;
-  const confmKey = "devU01TX0FVVEgyMDI1MDUwNDExNDk1ODExNTcxODE=";
+  /*const confmKey = "devU01TX0FVVEgyMDI1MDUwNDExNDk1ODExNTcxODE=";*/
+  const confmKey = "U01TX0FVVEgyMDI1MDUwNDEzNTg0MTExNTcxODQ=";
 
   if (!keyword) {
     return {
