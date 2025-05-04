@@ -54,8 +54,8 @@
       <button type="button" class="clear-btn" onclick="document.getElementById('addressInput').value = '';">×</button>
     </div>
     <button id="convertBtn" onclick="convertAddress()">변환하기</button>
-    <button id="toggleRawBtn" class="disabled-btn" disabled onclick="if (!this.disabled) toggleRaw()">검색결과형식보기</button>
-    <button id="toggleDetailBtn" class="disabled-btn" disabled onclick="if (!this.disabled) toggleDetail()">상세보기</button>
+    <button id="toggleRawBtn" class="disabled-btn" disabled>검색결과형식보기</button>
+    <button id="toggleDetailBtn" class="disabled-btn" disabled>상세보기</button>
   </div>
 
   <div class="result" id="result"></div>
@@ -160,11 +160,9 @@
           document.getElementById("toggleRawBtn").disabled = false;
           document.getElementById("toggleRawBtn").classList.remove("disabled-btn");
           document.getElementById("toggleRawBtn").style.cursor = "pointer";
-          document.getElementById("toggleRawBtn").style.background = "#007bff";
           document.getElementById("toggleDetailBtn").disabled = false;
           document.getElementById("toggleDetailBtn").classList.remove("disabled-btn");
           document.getElementById("toggleDetailBtn").style.cursor = "pointer";
-          document.getElementById("toggleDetailBtn").style.background = "#007bff";
         }
       } catch (err) {
         console.error(err);
