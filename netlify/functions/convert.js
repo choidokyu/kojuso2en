@@ -1,44 +1,44 @@
 const fetch = require("node-fetch");
 
-exports.handler = async function (event) {
-  const { keyword } = event.queryStringParameters;
-  /*const confmKey = "devU01TX0FVVEgyMDI1MDUwNDExNDk1ODExNTcxODE=";*/
-  /*const confmKey = "U01TX0FVVEgyMDI1MDUwNDEzNTg0MTExNTcxODQ=";*/
+exports.handler = async function (event, context) {
+  const keyword = event.queryStringParameters.keyword;
   const confmKey = "U01TX0FVVEgyMDI1MDUwNDE0MDc1MDExNTcxODU=";
 
-  if (!keyword) {
-    return {
-      statusCode: 400,
-      body: JSON.stringify({ error: "검색어가 없습니다." })
-    };
-  }
-
-  const url = `https://business.juso.go.kr/addrlink/addrEngApi.do?confmKey=${confmKey}&keyword=${encodeURIComponent(keyword)}&resultType=json`;
+  const apiUrl = `https://business.juso.go.kr/addrlink/addrEngApi.do?confmKey=${confmKey}&keyword=${encodeURIComponent(keyword)}&resultType=json`;
 
   try {
-    const response = await fetch(url);
-    
+    const response = await fetch(apiUrl);
     const data = await response.json();
 
-    if (data.results.common.errorCode === "0" && data.results.juso.length > 0) {
-      const juso = data.results.juso[0];
+    console.log("📦 전체 API 응답:", JSON.stringify(data));
+
+    const juso = data.results?.juso?.[0];
+
+    if (!juso) {
       return {
         statusCode: 200,
         body: JSON.stringify({
-          roadAddrEng: juso.roadAddrEng,
-          zipNo: juso.zipNo
-        })
-      };
-    } else {
-      return {
-        statusCode: 200,
-        body: JSON.stringify({ error: data.results.common.errorMessage })
+          roadAddrEng: "검색 결과 없음",
+          zipNo: "",
+          raw: data
+        }),
       };
     }
-  } catch (err) {
+
+    return {
+      statusCode: 200,
+      body: JSON.stringify({
+        roadAddrEng: juso.roadAddrEng || juso.engAddr || "영문 주소 없음",
+        zipNo: juso.zipNo || "우편번호 없음",
+        raw: juso
+      }),
+    };
+
+  } catch (error) {
+    console.error("❌ API 호출 실패:", error);
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: "API 호출 중 오류 발생" })
+      body: JSON.stringify({ error: "API 호출 오류 발생" }),
     };
   }
 };
