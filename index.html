@@ -1,105 +1,127 @@
-<!-- 기존 코드 생략 -->
-<button onclick="convertAddress()">변환하기</button>
-<button onclick="toggleRaw()" id="toggleRawBtn" style="display:none;">검색결과형식보기</button>
-<button onclick="toggleDetail()" id="toggleDetailBtn" style="display:none;">상세보기</button>
 
-<div class="result" id="result"></div>
-<div class="raw" id="rawResult" style="display:none;"></div>
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>KOJUSO2EN</title>
+  <style>
+    body { font-family: sans-serif; padding: 2em; background: #f5f5f5; }
+    input[type=text] { padding: 0.5em; width: 300px; }
+    button { padding: 0.5em 1em; background: #007bff; color: white; border: none; margin-left: 4px; }
+    .result, .raw { margin-top: 1em; padding: 1em; background: white; border-radius: 8px; white-space: pre-wrap; }
+    .error { color: red; }
+    input[readonly] { background: #eee; border: 1px solid #ccc; padding: 0.3em; }
+    table td { padding: 0.3em; vertical-align: top; }
+  </style>
+</head>
+<body>
+  <h1>KOJUSO2EN</h1>
+  <p>한글 주소를 입력하면 영문 주소로 변환해드립니다.</p>
+  <div style="display: flex; gap: 0.5em; align-items: center; flex-wrap: wrap;">
+    <input type="text" id="addressInput" placeholder="예: 서울특별시 중구 세종대로 110" style="flex: 1; min-width: 300px;" />
+    <button onclick="convertAddress()">변환하기</button>
+    <button onclick="toggleRaw()" id="toggleRawBtn" style="display:none;">검색결과형식보기</button>
+    <button onclick="toggleDetail()" id="toggleDetailBtn" style="display:none;">상세보기</button>
+  </div>
 
-<!-- 🔽 상세보기 결과 영역 -->
-<div id="detailBox" style="display:none; margin-top: 1em; background: white; border-radius: 8px; padding: 1em;">
-  <button onclick="toggleDetail()" style="float:right;">❌</button>
-  <h3>상세 주소 정보</h3>
-  <div id="detailContent"></div>
-</div>
+  <div class="result" id="result"></div>
+  <div class="raw" id="rawResult" style="display:none;"></div>
 
-<script>
-  let lastRaw = null;
+  <div id="detailBox" style="display:none; margin-top: 1em; background: white; border-radius: 8px; padding: 1em;">
+    <button onclick="toggleDetail()" style="float:right;">❌</button>
+    <h3>상세 주소 정보</h3>
+    <div id="detailContent"></div>
+  </div>
 
-  function checkSearchedWord(value) {
-    const sqlWords = ["OR", "SELECT", "INSERT", "DELETE", "UPDATE", "CREATE", "DROP", "EXEC", "UNION", "FETCH", "DECLARE", "TRUNCATE"];
-    const specialChars = /[%=><]/;
-    if (specialChars.test(value)) return false;
-    return !sqlWords.some(word => new RegExp(`\\b${word}\\b`, "i").test(value));
-  }
+  <script>
+    let lastRaw = null;
 
-  function toggleRaw() {
-    const rawDiv = document.getElementById("rawResult");
-    const btn = document.getElementById("toggleRawBtn");
-    if (rawDiv.style.display === "none") {
-      rawDiv.style.display = "block";
-      btn.innerText = "숨기기";
-      rawDiv.innerText = JSON.stringify(lastRaw, null, 2);
-    } else {
-      rawDiv.style.display = "none";
-      btn.innerText = "검색결과형식보기";
-    }
-  }
-
-  function toggleDetail() {
-    const detailBox = document.getElementById("detailBox");
-    const btn = document.getElementById("toggleDetailBtn");
-    if (detailBox.style.display === "none") {
-      const j = lastRaw.raw || {};
-      const detailHTML = `
-        <table>
-          <tr><td>도로명주소</td><td><input value="${j.roadAddr || ''}" /></td>
-              <td>공동주택여부</td><td><input value="${j.bdKdcd || ''}" /></td></tr>
-          <tr><td>지번 주소</td><td><input value="${j.jibunAddr || ''}" /></td>
-              <td>시도명</td><td><input value="${j.siNm || ''}" /></td></tr>
-          <tr><td>우편번호</td><td><input value="${j.zipNo || ''}" /></td>
-              <td>시군구명</td><td><input value="${j.sggNm || ''}" /></td></tr>
-          <tr><td>행정구역코드</td><td><input value="${j.admCd || ''}" /></td>
-              <td>읍면동명</td><td><input value="${j.emdNm || ''}" /></td></tr>
-          <tr><td>도로명코드</td><td><input value="${j.rnMgtSn || ''}" /></td>
-              <td>법정리명</td><td><input value="${j.liNm || ''}" /></td></tr>
-          <tr><td>산여부</td><td><input value="${j.mtYn || ''}" /></td>
-              <td>도로명</td><td><input value="${j.rn || ''}" /></td></tr>
-          <tr><td>도로명주소(한글)</td><td colspan="3"><input style="width: 100%;" value="${j.korAddr || ''}" /></td></tr>
-          <tr><td>건물본번 - 건물부번</td><td><input value="${j.buldMnnm || ''}" /></td>
-              <td>-</td><td><input value="${j.buldSlno || ''}" /></td></tr>
-          <tr><td>지번본번 - 지번부번</td><td><input value="${j.lnbrMnnm || ''}" /></td>
-              <td>-</td><td><input value="${j.lnbrSlno || ''}" /></td></tr>
-        </table>`;
-      document.getElementById("detailContent").innerHTML = detailHTML;
-      detailBox.style.display = "block";
-    } else {
-      detailBox.style.display = "none";
-    }
-  }
-
-  async function convertAddress() {
-    const keyword = document.getElementById("addressInput").value.trim();
-    const resultDiv = document.getElementById("result");
-    document.getElementById("toggleRawBtn").style.display = "none";
-    document.getElementById("toggleDetailBtn").style.display = "none";
-    document.getElementById("detailBox").style.display = "none";
-    resultDiv.innerHTML = "🔄 변환 중...";
-
-    if (!checkSearchedWord(keyword)) {
-      resultDiv.innerHTML = '<p class="error">❌ 유효하지 않은 검색어입니다.</p>';
-      return;
+    function checkSearchedWord(value) {
+      const sqlWords = ["OR", "SELECT", "INSERT", "DELETE", "UPDATE", "CREATE", "DROP", "EXEC", "UNION", "FETCH", "DECLARE", "TRUNCATE"];
+      const specialChars = /[%=><]/;
+      if (specialChars.test(value)) return false;
+      return !sqlWords.some(word => new RegExp(`\\b${word}\\b`, "i").test(value));
     }
 
-    try {
-      const res = await fetch(`/.netlify/functions/convert?keyword=${encodeURIComponent(keyword)}`);
-      const data = await res.json();
-      lastRaw = data;
-
-      if (data.errorCode && data.errorCode !== "0") {
-        resultDiv.innerHTML = `<p class="error">❌ 오류 (${data.errorCode}): ${data.errorMessage}</p>`;
+    function toggleRaw() {
+      const rawDiv = document.getElementById("rawResult");
+      const btn = document.getElementById("toggleRawBtn");
+      if (rawDiv.style.display === "none") {
+        rawDiv.style.display = "block";
+        btn.innerText = "숨기기";
+        rawDiv.innerText = JSON.stringify(lastRaw, null, 2);
       } else {
-        resultDiv.innerHTML = `
-          <p><strong>영문 도로명 주소:</strong> ${data.roadAddr || "없음"}</p>
-          <p><strong>영문 지번 주소:</strong> ${data.jibunAddr || "없음"}</p>
-          <p><strong>우편번호:</strong> ${data.zipNo || "없음"}</p>
-        `;
-        document.getElementById("toggleRawBtn").style.display = "inline-block";
-        document.getElementById("toggleDetailBtn").style.display = "inline-block";
+        rawDiv.style.display = "none";
+        btn.innerText = "검색결과형식보기";
       }
-    } catch (err) {
-      console.error(err);
-      resultDiv.innerHTML = '<p class="error">❌ API 호출 중 오류가 발생했습니다.</p>';
     }
-  }
-</script>
+
+    function toggleDetail() {
+      const detailBox = document.getElementById("detailBox");
+      const btn = document.getElementById("toggleDetailBtn");
+      if (detailBox.style.display === "none") {
+        const j = lastRaw.raw || {};
+        const detailHTML = `
+          <table>
+            <tr><td>도로명주소</td><td><input readonly value="${j.roadAddr || ''}" /></td>
+                <td>공동주택여부</td><td><input readonly value="${j.bdKdcd || ''}" /></td></tr>
+            <tr><td>지번 주소</td><td><input readonly value="${j.jibunAddr || ''}" /></td>
+                <td>시도명</td><td><input readonly value="${j.siNm || ''}" /></td></tr>
+            <tr><td>우편번호</td><td><input readonly value="${j.zipNo || ''}" /></td>
+                <td>시군구명</td><td><input readonly value="${j.sggNm || ''}" /></td></tr>
+            <tr><td>행정구역코드</td><td><input readonly value="${j.admCd || ''}" /></td>
+                <td>읍면동명</td><td><input readonly value="${j.emdNm || ''}" /></td></tr>
+            <tr><td>도로명코드</td><td><input readonly value="${j.rnMgtSn || ''}" /></td>
+                <td>법정리명</td><td><input readonly value="${j.liNm || ''}" /></td></tr>
+            <tr><td>산여부</td><td><input readonly value="${j.mtYn || ''}" /></td>
+                <td>도로명</td><td><input readonly value="${j.rn || ''}" /></td></tr>
+            <tr><td>도로명주소(한글)</td><td colspan="3"><input style="width: 100%;" readonly value="${j.korAddr || ''}" /></td></tr>
+            <tr><td>건물본번 - 건물부번</td><td><input readonly value="${j.buldMnnm || ''}" /></td>
+                <td>-</td><td><input readonly value="${j.buldSlno || ''}" /></td></tr>
+            <tr><td>지번본번 - 지번부번</td><td><input readonly value="${j.lnbrMnnm || ''}" /></td>
+                <td>-</td><td><input readonly value="${j.lnbrSlno || ''}" /></td></tr>
+          </table>`;
+        document.getElementById("detailContent").innerHTML = detailHTML;
+        detailBox.style.display = "block";
+      } else {
+        detailBox.style.display = "none";
+      }
+    }
+
+    async function convertAddress() {
+      const keyword = document.getElementById("addressInput").value.trim();
+      const resultDiv = document.getElementById("result");
+      document.getElementById("toggleRawBtn").style.display = "none";
+      document.getElementById("toggleDetailBtn").style.display = "none";
+      document.getElementById("detailBox").style.display = "none";
+      resultDiv.innerHTML = "🔄 변환 중...";
+
+      if (!checkSearchedWord(keyword)) {
+        resultDiv.innerHTML = '<p class="error">❌ 유효하지 않은 검색어입니다.</p>';
+        return;
+      }
+
+      try {
+        const res = await fetch(`/.netlify/functions/convert?keyword=${encodeURIComponent(keyword)}`);
+        const data = await res.json();
+        lastRaw = data;
+
+        if (data.errorCode && data.errorCode !== "0") {
+          resultDiv.innerHTML = `<p class="error">❌ 오류 (${data.errorCode}): ${data.errorMessage}</p>`;
+        } else {
+          resultDiv.innerHTML = `
+            <p><strong>영문 도로명 주소:</strong> ${data.roadAddr || "없음"}</p>
+            <p><strong>영문 지번 주소:</strong> ${data.jibunAddr || "없음"}</p>
+            <p><strong>우편번호:</strong> ${data.zipNo || "없음"}</p>
+          `;
+          document.getElementById("toggleRawBtn").style.display = "inline-block";
+          document.getElementById("toggleDetailBtn").style.display = "inline-block";
+        }
+      } catch (err) {
+        console.error(err);
+        resultDiv.innerHTML = '<p class="error">❌ API 호출 중 오류가 발생했습니다.</p>';
+      }
+    }
+  </script>
+</body>
+</html>
