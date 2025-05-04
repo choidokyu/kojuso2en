@@ -148,7 +148,7 @@
         const data = await res.json();
         lastRaw = data;
 
-        if (!data.errorCode || data.errorCode !== "0") {
+        if (data.errorCode && data.errorCode !== "0") {
           resultDiv.innerHTML = `<p class="error">❌ 오류 (${data.errorCode}): ${data.errorMessage}</p>`;
         } else {
           resultDiv.innerHTML = `
@@ -159,10 +159,8 @@
 
           document.getElementById("toggleRawBtn").disabled = false;
           document.getElementById("toggleRawBtn").classList.remove("disabled-btn");
-          document.getElementById("toggleRawBtn").style.cursor = "pointer";
           document.getElementById("toggleDetailBtn").disabled = false;
           document.getElementById("toggleDetailBtn").classList.remove("disabled-btn");
-          document.getElementById("toggleDetailBtn").style.cursor = "pointer";
         }
       } catch (err) {
         console.error(err);
