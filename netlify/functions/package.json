@@ -1,0 +1,6 @@
+{
+  "name": "kojuso2en",
+  "dependencies": {
+    "node-fetch": "^2.6.1"
+  }
+}
