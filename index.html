@@ -39,7 +39,18 @@
       background: #cccccc;
       cursor: not-allowed;
     }
-    .result, .raw { margin-top: 1em; padding: 1em; background: white; border-radius: 8px; white-space: pre-wrap; }
+    
+    .result, .raw {
+      margin-top: 1em;
+      padding: 1em;
+      background: white;
+      border-radius: 8px;
+      white-space: pre-wrap;
+    }
+    .result p {
+      margin: 0.3em 0; /* ✅ 간격 좁히기 */
+    }
+    
     .error { color: red; }
     input[readonly] { background: #eee; border: 1px solid #ccc; padding: 0.3em; }
     table td { padding: 0.3em; vertical-align: top; }
