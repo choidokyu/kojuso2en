@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>KOJUSO2EN - 영문 주소 변환기</title>
+  <style>
+    body { font-family: Arial, sans-serif; text-align: center; padding: 40px; background: #f2f2f2; }
+    h1 { color: #333; }
+    input, button {
+      padding: 10px;
+      font-size: 16px;
+      width: 80%;
+      max-width: 400px;
+      margin: 10px auto;
+      display: block;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+    button {
+      background-color: #007bff;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    #result {
+      margin-top: 30px;
+      font-size: 18px;
+    }
+  </style>
+</head>
+<body>
+  <h1>KOJUSO2EN</h1>
+  <p>한글 주소를 입력하면 영문 주소로 변환해드립니다.</p>
+
+  <input type="text" id="koreanAddress" placeholder="예: 대전광역시 서구 도안동로 234" />
+  <button onclick="convertAddress()">변환하기</button>
+
+  <div id="result"></div>
+
+  <script>
+    async function convertAddress() {
+      const keyword = document.getElementById('koreanAddress').value.trim();
+      const resultDiv = document.getElementById('result');
+
+      if (!keyword) {
+        resultDiv.innerHTML = "⚠️ 주소를 입력해주세요.";
+        return;
+      }
+
+      resultDiv.innerHTML = "🔄 변환 중입니다...";
+
+      const confmKey = "devU01TX0FVVEgyMDI1MDUwNDExNDk1ODExNTcxODE=";
+      const url = `https://business.juso.go.kr/addrlink/addrEngApi.do?confmKey=${confmKey}&keyword=${encodeURIComponent(keyword)}&resultType=json`;
+
+      try {
+        const response = await fetch(url);
+        const data = await response.json();
+
+        if (data.results.common.errorCode === "0") {
+          const juso = data.results.juso?.[0];
+          if (juso) {
+            resultDiv.innerHTML = `
+              ✅ <strong>영문 주소:</strong><br>${juso.roadAddrEng}<br><br>
+              📮 <strong>우편번호:</strong> ${juso.zipNo}
+            `;
+          } else {
+            resultDiv.innerHTML = "❌ 해당 주소에 대한 결과가 없습니다.";
+          }
+        } else {
+          resultDiv.innerHTML = `⚠️ 에러: ${data.results.common.errorMessage}`;
+        }
+      } catch (error) {
+        resultDiv.innerHTML = "❌ 오류가 발생했습니다. 브라우저 콘솔을 확인하세요.";
+        console.error(error);
+      }
+    }
+  </script>
+</body>
+</html>
