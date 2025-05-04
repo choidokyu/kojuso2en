@@ -2,10 +2,9 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <title>KOJUSO2EN - 영문 주소 변환기</title>
+  <title>KOJUSO2EN - 주소 영문 변환기</title>
   <style>
     body { font-family: Arial, sans-serif; text-align: center; padding: 40px; background: #f2f2f2; }
-    h1 { color: #333; }
     input, button {
       padding: 10px;
       font-size: 16px;
@@ -28,6 +27,7 @@
     #result {
       margin-top: 30px;
       font-size: 18px;
+      color: #222;
     }
   </style>
 </head>
@@ -52,28 +52,20 @@
 
       resultDiv.innerHTML = "🔄 변환 중입니다...";
 
-      const confmKey = "devU01TX0FVVEgyMDI1MDUwNDEyMDU1MTExNTcxODI=";
-      const url = `https://business.juso.go.kr/addrlink/addrEngApi.do?confmKey=${confmKey}&keyword=${encodeURIComponent(keyword)}&resultType=json`;
-
       try {
-        const response = await fetch(url);
+        const response = await fetch(`/.netlify/functions/convert?keyword=${encodeURIComponent(keyword)}`);
         const data = await response.json();
 
-        if (data.results.common.errorCode === "0") {
-          const juso = data.results.juso?.[0];
-          if (juso) {
-            resultDiv.innerHTML = `
-              ✅ <strong>영문 주소:</strong><br>${juso.roadAddrEng}<br><br>
-              📮 <strong>우편번호:</strong> ${juso.zipNo}
-            `;
-          } else {
-            resultDiv.innerHTML = "❌ 해당 주소에 대한 결과가 없습니다.";
-          }
+        if (data.error) {
+          resultDiv.innerHTML = `❌ ${data.error}`;
         } else {
-          resultDiv.innerHTML = `⚠️ 에러: ${data.results.common.errorMessage}`;
+          resultDiv.innerHTML = `
+            ✅ <strong>영문 주소:</strong><br>${data.roadAddrEng}<br><br>
+            📮 <strong>우편번호:</strong> ${data.zipNo}
+          `;
         }
       } catch (error) {
-        resultDiv.innerHTML = "❌ 오류가 발생했습니다. 브라우저 콘솔을 확인하세요.";
+        resultDiv.innerHTML = "❌ 오류가 발생했습니다. 콘솔을 확인하세요.";
         console.error(error);
       }
     }
