@@ -62,7 +62,8 @@
   <div style="display: flex; gap: 0.5em; align-items: center; flex-wrap: wrap;">
     <div class="input-wrapper">
       <input type="text" id="addressInput" placeholder="예: 서울특별시 중구 세종대로 110" />
-      <button type="button" class="clear-btn" onclick="document.getElementById('addressInput').value = '';">×</button>
+      <button type="button" class="clear-btn" 
+      onclick="document.getElementById('addressInput').value = ''; document.getElementById('result').innerHTML = '';">×</button>
     </div>
     <button id="convertBtn" onclick="convertAddress()">변환하기</button>
     <button id="toggleRawBtn" class="disabled-btn" disabled onclick="if (!this.disabled) toggleRaw()">검색결과형식보기</button>
