@@ -8,6 +8,7 @@
     input[type=text] { padding: 0.5em; width: 300px; }
     button { padding: 0.5em 1em; background: #007bff; color: white; border: none; }
     .result { margin-top: 1em; padding: 1em; background: white; border-radius: 8px; }
+    .error { color: red; }
   </style>
 </head>
 <body>
@@ -19,22 +20,40 @@
   <div class="result" id="result"></div>
 
   <script>
+    function checkSearchedWord(value) {
+      const sqlWords = ["OR", "SELECT", "INSERT", "DELETE", "UPDATE", "CREATE", "DROP", "EXEC", "UNION", "FETCH", "DECLARE", "TRUNCATE"];
+      const specialChars = /[%=><]/;
+
+      if (specialChars.test(value)) return false;
+      return !sqlWords.some(word => new RegExp(`\\b${word}\\b`, "i").test(value));
+    }
+
     async function convertAddress() {
-      const keyword = document.getElementById("addressInput").value;
+      const keyword = document.getElementById("addressInput").value.trim();
       const resultDiv = document.getElementById("result");
       resultDiv.innerHTML = "🔄 변환 중...";
+
+      if (!checkSearchedWord(keyword)) {
+        resultDiv.innerHTML = '<p class="error">❌ 유효하지 않은 검색어입니다. 특수문자나 SQL 예약어는 사용할 수 없습니다.</p>';
+        return;
+      }
 
       try {
         const res = await fetch(`/.netlify/functions/convert?keyword=${encodeURIComponent(keyword)}`);
         const data = await res.json();
 
-        resultDiv.innerHTML = `
-          ✅ <strong>영문 주소:</strong><br>${data.roadAddrEng}<br><br>
-          📮 <strong>우편번호:</strong> ${data.zipNo}<br><br>
-          🔎 <small>원시 응답: ${JSON.stringify(data.raw)}</small>
-        `;
+        if (data.errorCode && data.errorCode !== "0") {
+          resultDiv.innerHTML = `<p class="error">❌ 오류 (${data.errorCode}): ${data.errorMessage}</p>`;
+        } else {
+          resultDiv.innerHTML = `
+            <p><strong>영문 도로명 주소:</strong> ${data.roadAddr || "없음"}</p>
+            <p><strong>영문 지번 주소:</strong> ${data.jibunAddr || "없음"}</p>
+            <p><strong>우편번호:</strong> ${data.zipNo || "없음"}</p>
+          `;
+        }
       } catch (err) {
-        resultDiv.innerHTML = "❌ 오류 발생: " + err;
+        console.error(err);
+        resultDiv.innerHTML = '<p class="error">❌ API 호출 중 오류가 발생했습니다.</p>';
       }
     }
   </script>

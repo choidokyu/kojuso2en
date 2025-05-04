@@ -2,33 +2,27 @@ const fetch = require("node-fetch");
 
 exports.handler = async function (event, context) {
   const keyword = event.queryStringParameters.keyword;
-  const confmKey = "U01TX0FVVEgyMDI1MDUwNDE0MDc1MDExNTcxODU=";
+  const confmKey = "U01TX0FVVEgyMDI1MDUwNDE0MDc1MDExNTcxODU="; // 실제 키로 교체하세요
 
   const apiUrl = `https://business.juso.go.kr/addrlink/addrEngApi.do?confmKey=${confmKey}&keyword=${encodeURIComponent(keyword)}&resultType=json`;
 
   try {
     const response = await fetch(apiUrl);
     const data = await response.json();
-    console.log("📦 전체 API 응답:", JSON.stringify(data));
 
-    const juso = data.results?.juso?.[0];
+    const errCode = data.results?.common?.errorCode || "9999";
+    const errMsg = data.results?.common?.errorMessage || "알 수 없는 오류";
 
-    if (!juso) {
-      return {
-        statusCode: 200,
-        body: JSON.stringify({
-          roadAddrEng: "검색 결과 없음",
-          zipNo: "",
-          raw: data
-        }),
-      };
-    }
+    const juso = data.results?.juso?.[0] || {};
 
     return {
       statusCode: 200,
       body: JSON.stringify({
-        roadAddrEng: juso.roadAddrEng || juso.engAddr || "영문 주소 없음",
-        zipNo: juso.zipNo || "우편번호 없음",
+        errorCode: errCode,
+        errorMessage: errMsg,
+        roadAddr: juso.roadAddr || "",
+        jibunAddr: juso.jibunAddr || "",
+        zipNo: juso.zipNo || "",
         raw: juso
       }),
     };
@@ -36,7 +30,7 @@ exports.handler = async function (event, context) {
     console.error("❌ API 호출 실패:", error);
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: "API 호출 오류 발생" }),
+      body: JSON.stringify({ errorCode: "9999", errorMessage: "서버 오류", raw: null }),
     };
   }
 };
