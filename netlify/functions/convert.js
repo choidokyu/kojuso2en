@@ -19,7 +19,6 @@ exports.handler = async function (event) {
     const response = await fetch(url);
     
     const data = await response.json();
-    console.log("📦 API 응답:", JSON.stringify(data));
 
     if (data.results.common.errorCode === "0" && data.results.juso.length > 0) {
       const juso = data.results.juso[0];
