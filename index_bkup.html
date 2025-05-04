@@ -6,39 +6,8 @@
   <title>KOJUSO2EN</title>
   <style>
     body { font-family: sans-serif; padding: 2em; background: #f5f5f5; }
-    .input-wrapper {
-      position: relative;
-      display: inline-block;
-    }
-    #addressInput {
-      padding: 0.5em 2em 0.5em 0.5em;
-      width: 300px;
-    }
-    .clear-btn {
-      position: absolute;
-      right: 8px;
-      top: 50%;
-      transform: translateY(-50%);
-      background: none;
-      border: none;
-      font-size: 16px;
-      cursor: pointer;
-      color: #aaa;
-    }
-    button {
-      padding: 0.5em 1em;
-      margin-left: 4px;
-      border: none;
-      color: white;
-    }
-    #convertBtn {
-      background: #007bff;
-      cursor: pointer;
-    }
-    .disabled-btn {
-      background: #cccccc;
-      cursor: not-allowed;
-    }
+    input[type=text] { padding: 0.5em; width: 300px; }
+    button { padding: 0.5em 1em; background: #007bff; color: white; border: none; margin-left: 4px; }
     .result, .raw { margin-top: 1em; padding: 1em; background: white; border-radius: 8px; white-space: pre-wrap; }
     .error { color: red; }
     input[readonly] { background: #eee; border: 1px solid #ccc; padding: 0.3em; }
@@ -49,13 +18,10 @@
   <h1>KOJUSO2EN</h1>
   <p>한글 주소를 입력하면 영문 주소로 변환해드립니다.</p>
   <div style="display: flex; gap: 0.5em; align-items: center; flex-wrap: wrap;">
-    <div class="input-wrapper">
-      <input type="text" id="addressInput" placeholder="예: 서울특별시 중구 세종대로 110" />
-      <button type="button" class="clear-btn" onclick="document.getElementById('addressInput').value = '';">×</button>
-    </div>
-    <button id="convertBtn" onclick="convertAddress()">변환하기</button>
-    <button id="toggleRawBtn" class="disabled-btn" disabled>검색결과형식보기</button>
-    <button id="toggleDetailBtn" class="disabled-btn" disabled>상세보기</button>
+    <input type="text" id="addressInput" placeholder="예: 서울특별시 중구 세종대로 110" style="flex: 1; min-width: 300px;" />
+    <button onclick="convertAddress()">변환하기</button>
+    <button onclick="toggleRaw()" id="toggleRawBtn" style="display:none;">검색결과형식보기</button>
+    <button onclick="toggleDetail()" id="toggleDetailBtn" style="display:none;">상세보기</button>
   </div>
 
   <div class="result" id="result"></div>
@@ -82,7 +48,7 @@
       const btn = document.getElementById("toggleRawBtn");
       if (rawDiv.style.display === "none") {
         rawDiv.style.display = "block";
-        btn.innerText = "검색결과형식 숨기기";
+        btn.innerText = "숨기기";
         rawDiv.innerText = JSON.stringify(lastRaw, null, 2);
       } else {
         rawDiv.style.display = "none";
@@ -117,25 +83,17 @@
           </table>`;
         document.getElementById("detailContent").innerHTML = detailHTML;
         detailBox.style.display = "block";
-        btn.innerText = "상세 숨기기";
       } else {
         detailBox.style.display = "none";
-        btn.innerText = "상세보기";
       }
     }
 
     async function convertAddress() {
       const keyword = document.getElementById("addressInput").value.trim();
       const resultDiv = document.getElementById("result");
-      document.getElementById("toggleRawBtn").disabled = true;
-      document.getElementById("toggleRawBtn").classList.add("disabled-btn");
-      document.getElementById("toggleRawBtn").innerText = "검색결과형식보기";
-      document.getElementById("toggleDetailBtn").disabled = true;
-      document.getElementById("toggleDetailBtn").classList.add("disabled-btn");
-      document.getElementById("toggleDetailBtn").innerText = "상세보기";
-      document.getElementById("rawResult").style.display = "none";
+      document.getElementById("toggleRawBtn").style.display = "none";
+      document.getElementById("toggleDetailBtn").style.display = "none";
       document.getElementById("detailBox").style.display = "none";
-
       resultDiv.innerHTML = "🔄 변환 중...";
 
       if (!checkSearchedWord(keyword)) {
@@ -156,11 +114,8 @@
             <p><strong>영문 지번 주소:</strong> ${data.jibunAddr || "없음"}</p>
             <p><strong>우편번호:</strong> ${data.zipNo || "없음"}</p>
           `;
-
-          document.getElementById("toggleRawBtn").disabled = false;
-          document.getElementById("toggleRawBtn").classList.remove("disabled-btn");
-          document.getElementById("toggleDetailBtn").disabled = false;
-          document.getElementById("toggleDetailBtn").classList.remove("disabled-btn");
+          document.getElementById("toggleRawBtn").style.display = "inline-block";
+          document.getElementById("toggleDetailBtn").style.display = "inline-block";
         }
       } catch (err) {
         console.error(err);
